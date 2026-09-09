@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title th:text = "${user.id == null} ? 'New user' : 'Edit user'">User Form</title>
+    <style>
+
+        .user-panel { background-color: #f8f9fa; padding: 10px 15px; border-radius: 4px; margin-bottom: 20px; width: 40%; display: flex; justify-content: space-between; align-items: center; border: 1px solid #ddd; }
+        input[type="text"], input[type="email"], input[type="password"] { margin-bottom: 10px; padding: 5px; width: 100%; max-width: 300px; }
+    </style>
+</head>
+<body>
+<div sec:authorize="isAuthenticated()" class="user-panel">
+    <div>
+        Вы вошли как:
+        <strong sec:authentication="name">user@email.com</strong>
+    </div>
+    <form th:action="@{/logout}" method="post" style="margin: 0;">
+        <input type="submit" value="Выйти из аккаунта" style="cursor: pointer; padding: 5px 10px;"/>
+    </form>
+</div>
+
+
+<h2 th:text="${user.id == null} ? 'Create new user' : 'Edit user'">User</h2>
+<form th:method="POST" th:action="${user.id == null} ? @{/admin/create} : @{/admin/update}" th:object="${user}">
+    <input type="hidden" th:field="*{id}">
+
+    <div class="form-group">
+    <label for="firstName">Enter name: </label>
+    <input type="text" th:field="*{firstName}" id="firstName" required/>
+    </div>
+
+
+    <div class="form-group">
+    <label for="lastName">Enter surname: </label>
+    <input type="text" th:field="*{lastName}" id="lastName" required/>
+    </div>
+
+    <div class="form-group">
+    <label for="email">Enter email: </label>
+    <input type="email" th:field="*{email}" id="email" required/>
+    </div>
+
+    <div class="form-group">
+    <label for="password">Enter password: </label>
+    <input type="password" th:field="*{password}" id="password" th:required="${user.id == null}"/>
+    </div>
+
+    <div class="form-group">
+        <label>Assign Roles (можно выбрать несколько): </label>
+        <div class="checkbox-group">
+
+            <div th:each="role : ${allRoles}" class="checkbox-item">
+
+                <input type="checkbox"
+                       th:field="*{roles}"
+                       th:value="${role.id}"
+                       th:id="${'role_' + role.id}"/>
+
+                <label th:for="${'role_' + role.id}" th:text="${role.name}" style="font-weight: normal; display: inline;">ROLE_USER</label>
+            </div>
+        </div>
+    </div>
+
+    <input type="submit" th:value="${user.id == null} ? 'Сохранить' : 'Обновить'" class="btn-submit"/>
+</form>
+
+<br/>
+<a th:href="@{/admin}">Back to list</a>
+
+</body>
+</html>

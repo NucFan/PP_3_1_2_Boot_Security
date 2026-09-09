@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security"
+      lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Список пользователей</title>
+    <style>
+        table { border-collapse: collapse; width: 60%; margin-top: 20px; }
+        th, td { border: 1px solid black; padding: 10px; text-align: left; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+
+<div sec:authorize="isAuthenticated()" class="user-panel">
+    <div>
+        Вы вошли как:
+        <strong sec:authentication="name">user@email.com</strong>
+    </div>
+
+    <form th:action="@{/logout}" method="post" style="margin: 0;">
+        <input type="submit" value="Выйти из аккаунта" style="cursor: pointer; padding: 5px 10px;"/>
+    </form>
+</div>
+
+<h2>Список пользователей</h2>
+
+<a th:href="@{/admin/new}">Добавить пользователя</a>
+<br/><br/>
+
+<table>
+    <thead>
+    <tr>
+        <th>Id</th>
+        <th>Имя</th>
+        <th>Фамилия</th>
+        <th>Email</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr th:each="user : ${users}">
+        <td th:text="${user.id}">Id</td>
+        <td th:text="${user.firstName}">Имя</td>
+        <td th:text="${user.lastName}">Фамилия</td>
+        <td th:text="${user.email}">Email</td>
+        <td>
+            <a th:href="@{/admin/edit(id=${user.id})}">Edit</a>
+
+            <form th:action="@{/admin/delete}" method="post" style="display:inline;">
+                <input type="hidden" name="id" th:value="${user.id}"/>
+                <input type="submit" value="Delete" onclick="return confirm('Вы уверены, что хотите удалить пользователя?');"/>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+</body>
+</html>

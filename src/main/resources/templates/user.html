@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Личный кабинет</title>
+    <style>
+        .profile-card { border: 1px solid #ccc; padding: 20px; width: 40%; margin-top: 20px; border-radius: 8px; }
+        .role-badge { background-color: #e0e0e0; padding: 3px 8px; margin-right: 5px; border-radius: 4px; font-size: 14px; }
+    </style>
+</head>
+<body>
+
+<div sec:authorize="isAuthenticated()" class="user-panel">
+    <div>
+        Вы вошли как:
+        <strong sec:authentication="name">user@email.com</strong>
+    </div>
+    <form th:action="@{/logout}" method="post" style="margin: 0;">
+        <input type="submit" value="Выйти из аккаунта" style="cursor: pointer; padding: 5px 10px;"/>
+    </form>
+</div>
+
+<h2>Добро пожаловать в личный кабинет!</h2>
+
+<div class="profile-card">
+    <h3>Ваши персональные данные:</h3>
+    <p><strong>ID:</strong> <span th:text="${loggedUser.id}">1</span></p>
+    <p><strong>Имя:</strong> <span th:text="${loggedUser.firstName}">Имя</span></p>
+    <p><strong>Фамилия:</strong> <span th:text="${loggedUser.lastName}">Фамилия</span></p>
+    <p><strong>Email (Логин):</strong> <span th:text="${loggedUser.email}">email@example.com</span></p>
+
+    <p><strong>Ваши роли в системе:</strong>
+
+        <span th:each="role : ${loggedUser.roles}"
+              th:text="${role.name}"
+              class="role-badge">ROLE_USER</span>
+    </p>
+</div>
+
+</body>
+</html>
