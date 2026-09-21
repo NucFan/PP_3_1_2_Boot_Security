@@ -4,7 +4,6 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 
@@ -14,7 +13,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Repository
-public class UserRepository {
+public class UserDaoImpl implements UserDao{
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -50,21 +49,16 @@ public class UserRepository {
     }
 
 
-    public User save(User user) {
+    @Override
+    public void persist(User user) {
+        manageRolesState(user);
+        entityManager.persist(user);
+    }
 
-        if (user.getRoles() != null && !user.getRoles().isEmpty()) {
-            Set<Role> managedRoles = user.getRoles().stream()
-                    .map(role -> role.getId() != null ? entityManager.merge(role) : role)
-                    .collect(Collectors.toSet());
-            user.setRoles(managedRoles);
-        }
-
-        if (user.getId() == null) {
-            entityManager.persist(user);
-            return user;
-        } else {
-            return entityManager.merge(user);
-        }
+    @Override
+    public User merge(User user) {
+        manageRolesState(user);
+        return entityManager.merge(user);
     }
 
 
@@ -72,6 +66,15 @@ public class UserRepository {
         User user = entityManager.find(User.class, id);
         if (user != null) {
             entityManager.remove(user);
+        }
+    }
+
+    private void manageRolesState(User user) {
+        if (user.getRoles() != null && !user.getRoles().isEmpty()) {
+            Set<Role> managedRoles = user.getRoles().stream()
+                    .map(role -> role.getId() != null ? entityManager.merge(role) : role)
+                    .collect(Collectors.toSet());
+            user.setRoles(managedRoles);
         }
     }
 

@@ -9,7 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import ru.kata.spring.boot_security.demo.dao.UserRepository;
+import ru.kata.spring.boot_security.demo.dao.UserDaoImpl;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 import ru.kata.spring.boot_security.demo.service.UserServiceImpl;
@@ -28,7 +28,7 @@ import static org.mockito.Mockito.*;
 class UserServiceImplTest {
 
     @Mock
-    private UserRepository userRepository;
+    private UserDaoImpl userDaoImpl;
 
     @Mock
     private PasswordEncoder passwordEncoder;
@@ -53,14 +53,14 @@ class UserServiceImplTest {
     @DisplayName("Должен возвращать список всех пользователей")
     void shouldReturnAllUsers() {
         // given
-        when(userRepository.findAll()).thenReturn(List.of(testUser));
+        when(userDaoImpl.findAll()).thenReturn(List.of(testUser));
 
         // when
         List<User> users = userService.getAllUsers();
 
         // then
         assertThat(users).hasSize(1).containsExactly(testUser);
-        verify(userRepository, times(1)).findAll();
+        verify(userDaoImpl, times(1)).findAll();
     }
 
     @Test
@@ -68,7 +68,7 @@ class UserServiceImplTest {
     void shouldEncryptPasswordAndSaveUser() {
         // given
         when(passwordEncoder.encode("rawPassword")).thenReturn("encryptedPassword");
-        when(userRepository.save(any(User.class))).thenReturn(testUser);
+        when(userDaoImpl.save(any(User.class))).thenReturn(testUser);
 
         // when
         userService.saveUser(testUser);
@@ -76,7 +76,7 @@ class UserServiceImplTest {
         // then
         assertThat(testUser.getPassword()).isEqualTo("encryptedPassword");
         verify(passwordEncoder, times(1)).encode("rawPassword");
-        verify(userRepository, times(1)).save(testUser);
+        verify(userDaoImpl, times(1)).save(testUser);
     }
 
     @Test
@@ -91,7 +91,7 @@ class UserServiceImplTest {
         updatedUser.setId(1L);
         updatedUser.setPassword("newRawPassword"); // Передаем новый сырой пароль
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+        when(userDaoImpl.findById(1L)).thenReturn(Optional.of(existingUser));
         when(passwordEncoder.encode("newRawPassword")).thenReturn("newEncryptedPassword");
 
         // when
@@ -99,7 +99,7 @@ class UserServiceImplTest {
 
         // then
         assertThat(updatedUser.getPassword()).isEqualTo("newEncryptedPassword");
-        verify(userRepository, times(1)).save(updatedUser);
+        verify(userDaoImpl, times(1)).save(updatedUser);
     }
 
     @Test
@@ -114,7 +114,7 @@ class UserServiceImplTest {
         updatedUser.setId(1L);
         updatedUser.setPassword("encryptedPassword"); // Пароль совпадает со старым
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(existingUser));
+        when(userDaoImpl.findById(1L)).thenReturn(Optional.of(existingUser));
 
         // when
         userService.updateUser(updatedUser);
@@ -122,21 +122,21 @@ class UserServiceImplTest {
         // then
         assertThat(updatedUser.getPassword()).isEqualTo("encryptedPassword");
         verify(passwordEncoder, never()).encode(anyString());
-        verify(userRepository, times(1)).save(updatedUser);
+        verify(userDaoImpl, times(1)).save(updatedUser);
     }
 
     @Test
     @DisplayName("Должен выбрасывать исключение при обновлении несуществующего пользователя")
     void shouldThrowExceptionWhenUpdatingNonExistingUser() {
         // given
-        when(userRepository.findById(anyLong())).thenReturn(Optional.empty());
+        when(userDaoImpl.findById(anyLong())).thenReturn(Optional.empty());
 
         // when & then
         assertThatThrownBy(() -> userService.updateUser(testUser))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("User not found");
 
-        verify(userRepository, never()).save(any(User.class));
+        verify(userDaoImpl, never()).save(any(User.class));
     }
 
     @Test
@@ -146,20 +146,20 @@ class UserServiceImplTest {
         userService.deleteUser(1L);
 
         // then
-        verify(userRepository, times(1)).deleteById(1L);
+        verify(userDaoImpl, times(1)).deleteById(1L);
     }
 
     @Test
     @DisplayName("Должен возвращать пользователя по ID")
     void shouldReturnUserById() {
         // given
-        when(userRepository.findById(1L)).thenReturn(Optional.of(testUser));
+        when(userDaoImpl.findById(1L)).thenReturn(Optional.of(testUser));
 
         // when
         User foundUser = userService.getUserById(1L);
 
         // then
         assertThat(foundUser).isNotNull().isEqualTo(testUser);
-        verify(userRepository, times(1)).findById(1L);
+        verify(userDaoImpl, times(1)).findById(1L);
     }
 }

@@ -4,14 +4,13 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.NoResultException;
 import jakarta.persistence.PersistenceContext;
 import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 import ru.kata.spring.boot_security.demo.model.Role;
 
 import java.util.List;
 import java.util.Optional;
 
 @Repository
-public class RoleRepository {
+public class RoleDaoImpl implements RoleDao{
 
     @PersistenceContext
     private EntityManager entityManager;

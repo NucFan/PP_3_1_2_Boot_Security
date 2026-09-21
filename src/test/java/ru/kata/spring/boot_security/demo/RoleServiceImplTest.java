@@ -6,7 +6,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import ru.kata.spring.boot_security.demo.dao.RoleRepository;
+import ru.kata.spring.boot_security.demo.dao.RoleDaoImpl;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.service.RoleServiceImpl;
 
@@ -20,7 +20,7 @@ import static org.mockito.Mockito.*;
     class RoleServiceImplTest {
 
         @Mock
-        private RoleRepository roleRepository;
+        private RoleDaoImpl roleDaoImpl;
 
         @InjectMocks
         private RoleServiceImpl roleService;
@@ -31,14 +31,14 @@ import static org.mockito.Mockito.*;
             // given
             Role adminRole = new Role("ROLE_ADMIN");
             Role userRole = new Role("ROLE_USER");
-            when(roleRepository.findAll()).thenReturn(List.of(adminRole, userRole));
+            when(roleDaoImpl.findAll()).thenReturn(List.of(adminRole, userRole));
 
             // when
             List<Role> roles = roleService.getAllRoles();
 
             // then
             assertThat(roles).hasSize(2).containsExactlyInAnyOrder(adminRole, userRole);
-            verify(roleRepository, times(1)).findAll();
+            verify(roleDaoImpl, times(1)).findAll();
         }
 
         @Test
@@ -46,7 +46,7 @@ import static org.mockito.Mockito.*;
         void shouldFindRoleByName() {
             // given
             Role adminRole = new Role("ROLE_ADMIN");
-            when(roleRepository.findByName("ROLE_ADMIN")).thenReturn(Optional.of(adminRole));
+            when(roleDaoImpl.findByName("ROLE_ADMIN")).thenReturn(Optional.of(adminRole));
 
             // when
             Optional<Optional<Role>> foundRole = Optional.ofNullable(roleService.getRoleByName("ROLE_ADMIN"));
@@ -54,7 +54,7 @@ import static org.mockito.Mockito.*;
             // then
             assertThat(foundRole).isPresent();
             assertThat(foundRole.get()).contains(adminRole);
-            verify(roleRepository, times(1)).findByName("ROLE_ADMIN");
+            verify(roleDaoImpl, times(1)).findByName("ROLE_ADMIN");
         }
 
         @Test
@@ -62,14 +62,14 @@ import static org.mockito.Mockito.*;
         void shouldSaveRole() {
             // given
             Role newRole = new Role("ROLE_NEW");
-            when(roleRepository.save(newRole)).thenReturn(newRole);
+            when(roleDaoImpl.save(newRole)).thenReturn(newRole);
 
             // when
             Role savedRole = roleService.saveRole(newRole);
 
             // then
             assertThat(savedRole).isNotNull().isEqualTo(newRole);
-            verify(roleRepository, times(1)).save(newRole);
+            verify(roleDaoImpl, times(1)).save(newRole);
         }
     }
 
