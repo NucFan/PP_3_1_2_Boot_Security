@@ -1,5 +1,6 @@
 package ru.kata.spring.boot_security.demo.model;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -34,10 +35,14 @@ public class User implements UserDetails {
     @Column(name = "email", unique = true, nullable = false)
     private String email;
 
-    @Column(name = "password", unique = true, nullable = false)
+    @Column(name = "password", nullable = false)
     private String password;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {
+            CascadeType.MERGE,
+            CascadeType.PERSIST,
+            CascadeType.REFRESH,
+            CascadeType.DETACH})
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),

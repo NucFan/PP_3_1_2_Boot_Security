@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://www.thymeleaf.org">
+      xmlns:sec="http://thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title th:text = "${user.id == null} ? 'New user' : 'Edit user'">User Form</title>
@@ -54,9 +54,11 @@
             <div th:each="role : ${allRoles}" class="checkbox-item">
 
                 <input type="checkbox"
+
                        th:field="*{roles}"
                        th:value="${role.id}"
-                       th:id="${'role_' + role.id}"/>
+                       th:id="${'role_' + role.id}"
+                       th:checked="${user.roles != null and #lists.contains(user.roles.![id], role.id)}"/>
 
                 <label th:for="${'role_' + role.id}" th:text="${role.name}" style="font-weight: normal; display: inline;">ROLE_USER</label>
             </div>
@@ -67,7 +69,7 @@
 </form>
 
 <br/>
-<a th:href="@{/admin}">Back to list</a>
+<a th:href="@{/admin/}">Back to list</a>
 
 </body>
 </html>

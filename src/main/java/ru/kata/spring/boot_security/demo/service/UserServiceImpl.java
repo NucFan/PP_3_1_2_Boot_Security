@@ -17,12 +17,10 @@ import java.util.Set;
 public class UserServiceImpl implements UserService{
 
     private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -36,15 +34,7 @@ public class UserServiceImpl implements UserService{
     @Override
     @Transactional
     public void saveUser(User user) {
-        String rawPassword = user.getPassword();
-        String encodedPassword = passwordEncoder.encode(rawPassword);
-        user.setPassword(encodedPassword);
-
-        if (user.getRoles() == null || user.getRoles().isEmpty()) {
-            Set<Role> defaultRoles = new HashSet<>();
-            roleRepository.findByName("ROLE_USER").ifPresent(defaultRoles::add);
-            user.setRoles(defaultRoles);
-        }
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         userRepository.save(user);
     }
 
@@ -56,6 +46,7 @@ public class UserServiceImpl implements UserService{
 
         if (user.getPassword() != null && !user.getPassword().isEmpty()
         && !user.getPassword().equals(existingUser.getPassword())) {
+            user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         } else {
             user.setPassword(existingUser.getPassword());
@@ -76,6 +67,5 @@ public class UserServiceImpl implements UserService{
     public User getUserById(Long id){
         return userRepository.findById(id).orElse(null);
     }
-
 
 }
