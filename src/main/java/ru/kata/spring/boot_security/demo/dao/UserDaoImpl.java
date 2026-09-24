@@ -51,13 +51,11 @@ public class UserDaoImpl implements UserDao{
 
     @Override
     public void persist(User user) {
-        manageRolesState(user);
         entityManager.persist(user);
     }
 
     @Override
     public User merge(User user) {
-        manageRolesState(user);
         return entityManager.merge(user);
     }
 
@@ -69,13 +67,5 @@ public class UserDaoImpl implements UserDao{
         }
     }
 
-    private void manageRolesState(User user) {
-        if (user.getRoles() != null && !user.getRoles().isEmpty()) {
-            Set<Role> managedRoles = user.getRoles().stream()
-                    .map(role -> role.getId() != null ? entityManager.merge(role) : role)
-                    .collect(Collectors.toSet());
-            user.setRoles(managedRoles);
-        }
-    }
 
 }

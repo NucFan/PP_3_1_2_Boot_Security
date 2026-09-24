@@ -44,12 +44,6 @@ public class AdminController {
 
     @PostMapping("/create")
     public String createUser(@ModelAttribute("user") User user) {
-        if (user.getRoles() == null || user.getRoles().isEmpty()) {
-            Set<Role> defaultRoles = new HashSet<>();
-            roleService.getRoleByName("ROLE_USER").ifPresent(defaultRoles::add);
-            user.setRoles(defaultRoles);
-        }
-
         userService.saveUser(user);
         return "redirect:/admin/";
     }
