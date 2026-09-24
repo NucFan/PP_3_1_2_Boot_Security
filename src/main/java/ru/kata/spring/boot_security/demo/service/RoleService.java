@@ -9,4 +9,5 @@ public interface RoleService {
     List<Role> getAllRoles();
     Optional<Role> getRoleByName(String name);
     Role saveRole(Role role);
+    Optional<Role> getRoleById(Long id);
 }
