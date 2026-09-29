@@ -40,7 +40,7 @@ public class UserServiceImpl implements UserService{
         if (user.getPassword() == null || user.getPassword().isEmpty()) {
             throw new IllegalArgumentException("Password must not be empty");
         }
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
 
         if (user.getRoles() == null || user.getRoles().isEmpty()) {
             Role userRole = roleService.getRoleByName("ROLE_USER")
@@ -49,6 +49,8 @@ public class UserServiceImpl implements UserService{
         } else {
             user.setRoles(roleService.getManagedRoles(user.getRoles()));
         }
+
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
 
         userDao.persist(user);
         return user;

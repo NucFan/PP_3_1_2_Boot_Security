@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -59,18 +60,50 @@ class RoleServiceImplTest {
     }
 
     @Test
-    @DisplayName("Должен сохранять роль")
-    void shouldSaveRole() {
+    @DisplayName("Должен возвращать Optional.empty(), если роль по имени не найдена")
+    void shouldReturnEmptyOptionalWhenRoleNotFound() {
+        when(roleDao.findByName("ROLE_UNKNOWN")).thenReturn(Optional.empty());
+
+        Optional<Role> foundRole = roleService.getRoleByName("ROLE_UNKNOWN");
+
+        assertThat(foundRole).isEmpty();
+        verify(roleDao, times(1)).findByName("ROLE_UNKNOWN");
+    }
+
+    @Test
+    @DisplayName("saveRole для новой роли (id == null) → persist, возвращает тот же объект")
+    void shouldPersistNewRole() {
         // given
-        Role newRole = new Role("ROLE_NEW");
-        when(roleDao.save(newRole)).thenReturn(newRole);
+        Role newRole = new Role("ROLE_NEW"); // id == null
 
         // when
-        Role savedRole = roleService.saveRole(newRole);
+        Role saved = roleService.saveRole(newRole);
 
         // then
-        assertThat(savedRole).isNotNull().isEqualTo(newRole);
-        verify(roleDao, times(1)).save(newRole);
+        assertThat(saved).isSameAs(newRole);
+        verify(roleDao, times(1)).persist(newRole);
+        verify(roleDao, never()).merge(any());
+    }
+
+    @Test
+    @DisplayName("saveRole для существующей роли (id != null) → merge, возвращает managed-инстанс")
+    void shouldMergeExistingRole() {
+        // given
+        Role existing = new Role("ROLE_ADMIN");
+        existing.setId(1L);
+
+        Role merged = new Role("ROLE_ADMIN");
+        merged.setId(1L);
+
+        when(roleDao.merge(existing)).thenReturn(merged);
+
+        // when
+        Role result = roleService.saveRole(existing);
+
+        // then
+        assertThat(result).isSameAs(merged);
+        verify(roleDao, times(1)).merge(existing);
+        verify(roleDao, never()).persist(any());
     }
 
     @Test
@@ -97,13 +130,55 @@ class RoleServiceImplTest {
     }
 
     @Test
-    @DisplayName("Должен возвращать пустой Set, если передан пустой список ролей")
+    @DisplayName("getManagedRoles: role с id == null отбрасывается, в БД не идём")
+    void shouldSkipRoleWithoutId() {
+        // given
+        Role transientRole = new Role("ROLE_NEW"); // id == null
+
+        // when
+        Set<Role> managedRoles = roleService.getManagedRoles(Set.of(transientRole));
+
+        // then
+        assertThat(managedRoles).isEmpty();
+        verify(roleDao, never()).findById(any());
+    }
+
+    @Test
+    @DisplayName("getManagedRoles: если role не найдена в БД — бросает IllegalArgumentException")
+    void shouldThrowWhenRoleNotFoundInDb() {
+        // given
+        Role detached = new Role("ROLE_GHOST");
+        detached.setId(99L);
+
+        when(roleDao.findById(99L)).thenReturn(Optional.empty());
+
+        // when / then
+        assertThatThrownBy(() -> roleService.getManagedRoles(Set.of(detached)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("99");
+
+        verify(roleDao, times(1)).findById(99L);
+    }
+
+    @Test
+    @DisplayName("getManagedRoles: пустой Set — возвращает пустой Set, DAO не вызывается")
     void shouldReturnEmptySetWhenRolesAreEmpty() {
         // when
         Set<Role> managedRoles = roleService.getManagedRoles(Collections.emptySet());
 
         // then
         assertThat(managedRoles).isEmpty();
-        verifyNoInteractions(roleDao); // Убеждаемся, что в базу запросов не было
+        verifyNoInteractions(roleDao);
+    }
+
+    @Test
+    @DisplayName("getManagedRoles: null — возвращает пустой Set, DAO не вызывается")
+    void shouldReturnEmptySetWhenRolesAreNull() {
+        // when
+        Set<Role> managedRoles = roleService.getManagedRoles(null);
+
+        // then
+        assertThat(managedRoles).isEmpty();
+        verifyNoInteractions(roleDao);
     }
 }
