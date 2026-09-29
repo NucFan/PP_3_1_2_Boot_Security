@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<body>
+
+<!-- ══════ NAVBAR ══════ -->
+<nav th:fragment="navbar" class="navbar navbar-dark bg-dark px-3 py-2 d-flex justify-content-between align-items-center">
+    <div class="text-white">
+        <strong sec:authentication="name">user@mail.ru</strong>
+        <span class="ms-2">with roles:</span>
+        <span sec:authorize="hasRole('ADMIN')" class="ms-1">ADMIN</span>
+        <span sec:authorize="hasRole('USER')" class="ms-1">USER</span>
+    </div>
+    <form th:action="@{/logout}" method="post" class="m-0">
+        <button type="submit" class="btn btn-link text-white-50 text-decoration-none p-0">Logout</button>
+    </form>
+</nav>
+
+<!-- ══════ SIDEBAR ══════ -->
+<aside th:fragment="sidebar(active)"
+       class="bg-light border-end"
+       style="width: 220px; min-height: calc(100vh - 56px);">
+    <ul class="nav flex-column">
+        <li class="nav-item" sec:authorize="hasRole('ADMIN')">
+            <a class="nav-link py-3 px-3"
+               th:href="@{/admin/}"
+               th:classappend="${active == 'admin'} ? 'bg-primary text-white' : 'text-primary'">
+                Admin
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link py-3 px-3"
+               th:href="@{/user}"
+               th:classappend="${active == 'user'} ? 'bg-primary text-white' : 'text-primary'">
+                User
+            </a>
+        </li>
+    </ul>
+</aside>
+
+</body>
+</html>

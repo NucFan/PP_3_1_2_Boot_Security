@@ -34,6 +34,7 @@ public class AdminController {
     @GetMapping({"", "/"})
     public String listUsers(Model model) {
         model.addAttribute("users", userService.getAllUsers());
+        model.addAttribute("allRoles", roleService.getAllRoles());
         return "index";
     }
 

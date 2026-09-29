@@ -3,77 +3,71 @@
       xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title th:text = "${user.id == null} ? 'New user' : 'Edit user'">User Form</title>
-    <style>
-
-        .user-panel { background-color: #f8f9fa; padding: 10px 15px; border-radius: 4px; margin-bottom: 20px; width: 40%; display: flex; justify-content: space-between; align-items: center; border: 1px solid #ddd; }
-        input[type="text"], input[type="email"], input[type="password"] { margin-bottom: 10px; padding: 5px; width: 100%; max-width: 300px; }
-        .checkbox-item {margin-bottom: 5px;}
-        .error {color: red; font-size: 0.9em;}
-    </style>
+    <title>Admin panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
-<div sec:authorize="isAuthenticated()" class="user-panel">
-    <div>
-        Вы вошли как:
-        <strong sec:authentication="name">user@email.com</strong>
-    </div>
-    <form th:action="@{/logout}" method="post" style="margin: 0;">
-        <input type="submit" value="Выйти из аккаунта" style="cursor: pointer; padding: 5px 10px;"/>
-    </form>
-</div>
+<body class="bg-white">
 
+<nav th:replace="~{fragments/common :: navbar}"></nav>
 
-<h2 th:text="${user.id == null} ? 'Create new user' : 'Edit user'">User</h2>
-<form method="post" th:action="${user.id == null} ? @{/admin/create} : @{/admin/update}" th:object="${user}">
-    <input type="hidden" th:field="*{id}">
+<div class="d-flex">
+    <aside th:replace="~{fragments/common :: sidebar('admin')}"></aside>
 
-    <div class="form-group">
-    <label for="firstName">Enter name: </label>
-    <input type="text" th:field="*{firstName}" id="firstName" required/>
-    </div>
+    <main class="flex-grow-1 p-4">
+        <h1 class="mb-4">Admin panel</h1>
 
+        <ul class="nav nav-tabs mb-3">
+            <li class="nav-item">
+                <a class="nav-link" th:href="@{/admin/}">Users table</a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link active" th:href="@{/admin/new}">New User</a>
+            </li>
+        </ul>
 
-    <div class="form-group">
-    <label for="lastName">Enter surname: </label>
-    <input type="text" th:field="*{lastName}" id="lastName" required/>
-    </div>
-
-    <div class="form-group">
-    <label for="email">Enter email: </label>
-    <input type="email" th:field="*{email}" id="email" required/>
-    </div>
-
-    <div class="form-group">
-    <label for="password">Enter password: </label>
-    <input type="password" th:field="*{password}" id="password" th:required="${user.id == null}"
-    th:placeholder="${user.id == null} ? '' : 'Оставьте пустым, чтобы не менять'"/>
-    </div>
-
-    <div class="form-group">
-        <label>Assign Roles (можно выбрать несколько): </label>
-        <div class="checkbox-group">
-
-            <div th:each="role : ${allRoles}" class="checkbox-item">
-
-                <input type="checkbox"
-                       name="roles"
-                       th:value="${role.id}"
-                       th:id="${'role_' + role.id}"
-                       th:checked="${user.roles != null and user.roles.contains(role)}"/>
-
-                <label th:for="${'role_' + role.id}"
-                       th:text="${role.name}"
-                       style="font-weight: normal; display: inline;">ROLE_USER</label>
+        <div class="card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0">Add new user</h5>
+            </div>
+            <div class="card-body">
+                <form th:action="@{/admin/create}" method="post" style="max-width: 480px; margin: 0 auto;">
+                    <div class="mb-3">
+                        <label class="form-label d-block text-center fw-bold">First name</label>
+                        <input type="text" class="form-control" name="firstName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label d-block text-center fw-bold">Last name</label>
+                        <input type="text" class="form-control" name="lastName" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label d-block text-center fw-bold">Age</label>
+                        <input type="number" class="form-control" name="age">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label d-block text-center fw-bold">Email</label>
+                        <input type="email" class="form-control" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label d-block text-center fw-bold">Password</label>
+                        <input type="password" class="form-control" name="password" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label d-block text-center fw-bold">Role</label>
+                        <select class="form-select" name="roles" multiple size="2" required>
+                            <option th:each="role : ${allRoles}"
+                                    th:value="${role.id}"
+                                    th:text="${#strings.replace(role.name, 'ROLE_', '')}">USER</option>
+                        </select>
+                    </div>
+                    <div class="text-center">
+                        <button type="submit" class="btn btn-success px-4">Add new user</button>
+                    </div>
+                </form>
             </div>
         </div>
-    </div>
+    </main>
+</div>
 
-    <button type="submit" th:text="${user.id == null} ? 'Сохранить' : 'Обновить'"></button>
-</form>
-
-<br/>
-<a th:href="@{/admin/}">Back to list</a>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

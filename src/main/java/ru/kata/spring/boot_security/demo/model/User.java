@@ -30,6 +30,9 @@ public class User implements UserDetails {
     @Column(name = "name")
     private String firstName;
 
+    @Column(name = "age")
+    private Integer age;
+
     @Column(name = "last_name")
     private String lastName;
 
@@ -54,9 +57,10 @@ public class User implements UserDetails {
     public User() {
     }
 
-    public User(String firstName, String lastName, String email, String password, Set<Role> roles) {
+    public User(String firstName, String lastName, Integer age, String email, String password, Set<Role> roles) {
         this.firstName = firstName;
         this.lastName = lastName;
+        this.age = age;
         this.email = email;
         this.password = password;
         this.roles = roles;
@@ -126,15 +130,25 @@ public class User implements UserDetails {
     public Set<Role> getRoles() { return roles; }
     public void setRoles(Set<Role> roles) { this.roles = roles; }
 
+    public Integer getAge() {
+        return age;
+    }
+
+    public void setAge(Integer age) {
+        this.age = age;
+    }
+
     @Override
     public String toString() {
         return "User{" +
                 "id=" + id +
                 ", firstName='" + firstName + '\'' +
+                ", age=" + age +
                 ", lastName='" + lastName + '\'' +
                 ", email='" + email + '\'' +
                 '}';
     }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
