@@ -35,7 +35,11 @@ public class RoleServiceImpl implements RoleService {
     @Override
     @Transactional
     public Role saveRole(Role role) {
-        return roleDao.save(role);
+        if (role.getId() == null){
+            roleDao.persist(role);
+            return role;
+        }
+        return roleDao.merge(role);
     }
 
     @Override
@@ -52,12 +56,9 @@ public class RoleServiceImpl implements RoleService {
         }
 
         return roles.stream()
-                .map(role -> {
-                    if (role.getId() != null) {
-                        return roleDao.findById(role.getId()).orElse(role);
-                    }
-                    return role;
-                })
+                .filter(r -> r.getId() != null)
+                .map(r -> roleDao.findById(r.getId())
+                        .orElseThrow(() -> new IllegalArgumentException("Role not found: id=" + r.getId())))
                 .collect(Collectors.toSet());
     }
 }

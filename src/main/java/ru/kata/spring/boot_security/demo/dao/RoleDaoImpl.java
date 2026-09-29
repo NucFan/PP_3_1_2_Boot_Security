@@ -15,35 +15,36 @@ public class RoleDaoImpl implements RoleDao{
     @PersistenceContext
     private EntityManager entityManager;
 
+    @Override
     public Optional<Role> findByName(String name) {
-        try {
-            Role role = entityManager.createQuery(
+
+            return entityManager.createQuery(
                             "SELECT r FROM Role r WHERE r.name = :name", Role.class)
                     .setParameter("name", name)
-                    .getSingleResult();
-            return Optional.of(role);
-        } catch (NoResultException e) {
-            return Optional.empty();
-        }
+                    .getResultStream()
+                    .findFirst();
     }
 
+    @Override
     public List<Role> findAll() {
-        return entityManager.createQuery("SELECT r FROM Role r", Role.class)
+        return entityManager.createQuery("SELECT r FROM Role r ORDER BY r.name", Role.class)
                 .getResultList();
     }
 
 
-    public Role save(Role role) {
-        if (role.getId() == null) {
-            entityManager.persist(role);
-            return role;
-        } else {
-            return entityManager.merge(role);
-        }
-    }
-
+    @Override
     public Optional<Role> findById(Long id) {
         Role role = entityManager.find(Role.class, id);
         return Optional.ofNullable(role);
+    }
+
+    @Override
+    public void persist(Role role) {
+        entityManager.persist(role);
+    }
+
+    @Override
+    public Role merge(Role role) {
+        return entityManager.merge(role);
     }
 }

@@ -17,7 +17,7 @@ public class StringToRoleConverter implements Converter<String, Role> {
 
     @Override
     public Role convert(String source) {
-        if (source == null || source.isEmpty()) {
+        if (source == null || source.isBlank()) {
             return null;
         }
         Long id = Long.parseLong(source);

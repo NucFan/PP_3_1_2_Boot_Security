@@ -1,13 +1,15 @@
 <!DOCTYPE html>
 <html lang="en"
       xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://thymeleaf.org">
+      xmlns:sec="http://thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title>Личный кабинет</title>
     <style>
-        .profile-card { border: 1px solid #ccc; padding: 20px; width: 40%; margin-top: 20px; border-radius: 8px; }
-        .role-badge { background-color: #e0e0e0; padding: 3px 8px; margin-right: 5px; border-radius: 4px; font-size: 14px; }
+        .user-panel { background-color: #f8f9fa; padding: 10px 15px; border-radius: 4px; margin-bottom: 20px; width: 40%;
+            display: flex; justify-content: space-between; align-items: center; border: 1px solid #ddd; }
+        .profile-card { border: 1px solid #ccc; padding: 20px; width: 40%; margin-top: 5px; border-radius: 8px; }
+        .role-badge { background-color: #e0e0e0; padding: 3px 8px; margin-right: 5px; border-radius: 4px; font-size: 14px; display: inline-block; }
     </style>
 </head>
 <body>
@@ -24,7 +26,7 @@
 
 <h2>Добро пожаловать в личный кабинет!</h2>
 
-<div class="profile-card">
+<div class="profile-card" th:if="${loggedUser != null}">
     <h3>Ваши персональные данные:</h3>
     <p><strong>ID:</strong> <span th:text="${loggedUser.id}">1</span></p>
     <p><strong>Имя:</strong> <span th:text="${loggedUser.firstName}">Имя</span></p>
@@ -36,7 +38,12 @@
         <span th:each="role : ${loggedUser.roles}"
               th:text="${role.name}"
               class="role-badge">ROLE_USER</span>
+        <span th:if="${loggedUser.roles == null or #lists.isEmpty(loggedUser.roles)}"
+              style="color: #888;">Нет ролей</span>
     </p>
+</div>
+<div sec:authorize="hasRole('ADMIN')" style="margin-top: 20px;">
+    <a th:href="@{/admin/}">Перейти в админ-панель</a>
 </div>
 
 </body>

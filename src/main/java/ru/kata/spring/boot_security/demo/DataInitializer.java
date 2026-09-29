@@ -28,15 +28,12 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     @Transactional
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
 
-        Role userRole = roleDao.findByName("ROLE_USER")
-                .orElseGet(() -> roleDao.save(new Role("ROLE_USER")));
+        Role userRole = getOrCreateRole("ROLE_USER");
+        Role adminRole = getOrCreateRole("ROLE_ADMIN");
 
         if (userDao.findByEmail("admin@mail.com").isEmpty()) {
-
-            Role adminRole = roleDao.findByName("ROLE_ADMIN")
-                    .orElseGet(() -> roleDao.save(new Role("ROLE_ADMIN")));
 
             User admin = new User();
             admin.setFirstName("Главный");
@@ -45,10 +42,10 @@ public class DataInitializer implements CommandLineRunner {
             admin.setPassword(passwordEncoder.encode("admin"));
 
 
-            Set<Role> adminRoles = new HashSet<>();
-            adminRoles.add(adminRole);
-            adminRoles.add(userRole);
-            admin.setRoles(adminRoles);
+            Set<Role> roles = new HashSet<>();
+            roles.add(adminRole);
+            roles.add(userRole);
+            admin.setRoles(roles);
 
             userDao.persist(admin);
 
@@ -58,5 +55,13 @@ public class DataInitializer implements CommandLineRunner {
             System.out.println("Роли: ROLE_ADMIN, ROLE_USER");
             System.out.println("===========================================");
         }
+
+    }
+    private Role getOrCreateRole(String name) {
+        return roleDao.findByName(name).orElseGet(() -> {
+            Role role = new Role(name);
+            roleDao.persist(role);
+            return role;
+        });
     }
 }

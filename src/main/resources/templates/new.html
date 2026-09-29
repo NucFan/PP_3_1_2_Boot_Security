@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
-      xmlns:sec="http://thymeleaf.org">
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title th:text = "${user.id == null} ? 'New user' : 'Edit user'">User Form</title>
@@ -8,6 +8,8 @@
 
         .user-panel { background-color: #f8f9fa; padding: 10px 15px; border-radius: 4px; margin-bottom: 20px; width: 40%; display: flex; justify-content: space-between; align-items: center; border: 1px solid #ddd; }
         input[type="text"], input[type="email"], input[type="password"] { margin-bottom: 10px; padding: 5px; width: 100%; max-width: 300px; }
+        .checkbox-item {margin-bottom: 5px;}
+        .error {color: red; font-size: 0.9em;}
     </style>
 </head>
 <body>
@@ -23,7 +25,7 @@
 
 
 <h2 th:text="${user.id == null} ? 'Create new user' : 'Edit user'">User</h2>
-<form th:method="POST" th:action="${user.id == null} ? @{/admin/create} : @{/admin/update}" th:object="${user}">
+<form method="post" th:action="${user.id == null} ? @{/admin/create} : @{/admin/update}" th:object="${user}">
     <input type="hidden" th:field="*{id}">
 
     <div class="form-group">
@@ -44,7 +46,8 @@
 
     <div class="form-group">
     <label for="password">Enter password: </label>
-    <input type="password" th:field="*{password}" id="password" th:required="${user.id == null}"/>
+    <input type="password" th:field="*{password}" id="password" th:required="${user.id == null}"
+    th:placeholder="${user.id == null} ? '' : 'Оставьте пустым, чтобы не менять'"/>
     </div>
 
     <div class="form-group">
@@ -54,18 +57,19 @@
             <div th:each="role : ${allRoles}" class="checkbox-item">
 
                 <input type="checkbox"
-
-                       th:field="*{roles}"
+                       name="roles"
                        th:value="${role.id}"
                        th:id="${'role_' + role.id}"
-                       th:checked="${user.roles != null and #lists.contains(user.roles.![id], role.id)}"/>
+                       th:checked="${user.roles != null and user.roles.contains(role)}"/>
 
-                <label th:for="${'role_' + role.id}" th:text="${role.name}" style="font-weight: normal; display: inline;">ROLE_USER</label>
+                <label th:for="${'role_' + role.id}"
+                       th:text="${role.name}"
+                       style="font-weight: normal; display: inline;">ROLE_USER</label>
             </div>
         </div>
     </div>
 
-    <input type="submit" th:value="${user.id == null} ? 'Сохранить' : 'Обновить'" class="btn-submit"/>
+    <button type="submit" th:text="${user.id == null} ? 'Сохранить' : 'Обновить'"></button>
 </form>
 
 <br/>
