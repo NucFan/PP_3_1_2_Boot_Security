@@ -11,12 +11,7 @@ import ru.kata.spring.boot_security.demo.model.User;
 @RequestMapping("/user")
 public class UserController {
     @GetMapping({"", "/"})
-    public String showUserProfile(@AuthenticationPrincipal User currentUser, Model model) {
-
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
-        model.addAttribute("loggedUser", currentUser);
+    public String userPage() {
         return "user";
     }
 }

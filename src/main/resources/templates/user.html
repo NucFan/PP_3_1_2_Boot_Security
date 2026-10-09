@@ -24,27 +24,12 @@
                 <table class="table table-striped align-middle mb-0">
                     <thead>
                     <tr>
-                        <th>ID</th>
-                        <th>First Name</th>
-                        <th>Last Name</th>
-                        <th>Age</th>
-                        <th>Email</th>
-                        <th>Role</th>
+                        <th>ID</th><th>First Name</th><th>Last Name</th>
+                        <th>Age</th><th>Email</th><th>Roles</th>
                     </tr>
                     </thead>
-                    <tbody>
-                    <tr th:if="${loggedUser != null}">
-                        <td th:text="${loggedUser.id}">1</td>
-                        <td th:text="${loggedUser.firstName}">First</td>
-                        <td th:text="${loggedUser.lastName}">Last</td>
-                        <td th:text="${loggedUser.age}">25</td>
-                        <td th:text="${loggedUser.email}">email</td>
-                        <td>
-                            <span th:each="role : ${loggedUser.roles}"
-                                  class="me-1"
-                                  th:text="${#strings.replace(role.name, 'ROLE_', '')}">USER</span>
-                        </td>
-                    </tr>
+                    <tbody id="me-tbody">
+                    <tr><td colspan="6" class="text-center text-muted py-4">Loading...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -53,5 +38,38 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function escapeHtml(s) {
+        return String(s ?? '')
+            .replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;')
+            .replaceAll('"','&quot;').replaceAll("'",'&#39;');
+    }
+
+    (async () => {
+        const tbody = document.getElementById('me-tbody');
+        try {
+            const resp = await fetch('/api/users/me', {
+                headers: { 'Accept': 'application/json' }
+            });
+            if (!resp.ok) throw new Error('HTTP ' + resp.status);
+            const u = await resp.json();
+
+            const roles = (u.roles || []).map(r => r.replace('ROLE_','')).join(', ');
+
+            tbody.innerHTML = `
+            <tr>
+                <td>${u.id}</td>
+                <td>${escapeHtml(u.firstName)}</td>
+                <td>${escapeHtml(u.lastName)}</td>
+                <td>${u.age ?? ''}</td>
+                <td>${escapeHtml(u.email)}</td>
+                <td>${escapeHtml(roles)}</td>
+            </tr>`;
+        } catch (e) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center text-danger py-4">${escapeHtml(e.message)}</td></tr>`;
+        }
+    })();
+</script>
+
 </body>
 </html>
