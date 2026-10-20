@@ -12,4 +12,5 @@ public interface RoleService {
     Role saveRole(Role role);
     Optional<Role> getRoleById(Long id);
     Set<Role> getManagedRoles(Set<Role> roles);
+    Set<Role> getManagedRolesByIds(Set<Long> roleIds);
 }

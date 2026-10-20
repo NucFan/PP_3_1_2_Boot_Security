@@ -49,7 +49,7 @@ public class RoleServiceImpl implements RoleService {
     }
 
     @Override
-    @Transactional
+    @Transactional(readOnly = true)
     public Set<Role> getManagedRoles(Set<Role> roles) {
         if (roles == null || roles.isEmpty()) {
             return new HashSet<>();
@@ -59,6 +59,18 @@ public class RoleServiceImpl implements RoleService {
                 .filter(r -> r.getId() != null)
                 .map(r -> roleDao.findById(r.getId())
                         .orElseThrow(() -> new IllegalArgumentException("Role not found: id=" + r.getId())))
+                .collect(Collectors.toSet());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Set<Role> getManagedRolesByIds(Set<Long> roleIds) {
+        if (roleIds == null || roleIds.isEmpty()) {
+            return new HashSet<>();
+        }
+        return roleIds.stream()
+                .map(roleId -> roleDao.findById(roleId)
+                        .orElseThrow(() -> new IllegalArgumentException("Role not found: id=" + roleId)))
                 .collect(Collectors.toSet());
     }
 }

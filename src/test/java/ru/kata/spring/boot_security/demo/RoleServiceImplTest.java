@@ -181,4 +181,53 @@ class RoleServiceImplTest {
         assertThat(managedRoles).isEmpty();
         verifyNoInteractions(roleDao);
     }
+
+
+    @Test
+    @DisplayName("getManagedRolesByIds: возвращает managed-роли по id")
+    void shouldReturnManagedRolesByIds() {
+        Role admin = new Role("ROLE_ADMIN");
+        admin.setId(1L);
+        Role user = new Role("ROLE_USER");
+        user.setId(2L);
+
+        when(roleDao.findById(1L)).thenReturn(Optional.of(admin));
+        when(roleDao.findById(2L)).thenReturn(Optional.of(user));
+
+        Set<Role> result = roleService.getManagedRolesByIds(Set.of(1L, 2L));
+
+        assertThat(result).containsExactlyInAnyOrder(admin, user);
+        verify(roleDao, times(1)).findById(1L);
+        verify(roleDao, times(1)).findById(2L);
+    }
+
+    @Test
+    @DisplayName("getManagedRolesByIds: id не найден → IllegalArgumentException")
+    void shouldThrowWhenIdNotFoundInDb() {
+        when(roleDao.findById(99L)).thenReturn(Optional.empty());
+
+        assertThatThrownBy(() -> roleService.getManagedRolesByIds(Set.of(99L)))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessageContaining("99");
+
+        verify(roleDao, times(1)).findById(99L);
+    }
+
+    @Test
+    @DisplayName("getManagedRolesByIds: пустой Set → пустой Set, DAO не вызывается")
+    void shouldReturnEmptySetWhenIdsAreEmpty() {
+        Set<Role> result = roleService.getManagedRolesByIds(Collections.emptySet());
+
+        assertThat(result).isEmpty();
+        verifyNoInteractions(roleDao);
+    }
+
+    @Test
+    @DisplayName("getManagedRolesByIds: null → пустой Set, DAO не вызывается")
+    void shouldReturnEmptySetWhenIdsAreNull() {
+        Set<Role> result = roleService.getManagedRolesByIds(null);
+
+        assertThat(result).isEmpty();
+        verifyNoInteractions(roleDao);
+    }
 }

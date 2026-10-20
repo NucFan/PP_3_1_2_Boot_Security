@@ -4,6 +4,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.kata.spring.boot_security.demo.dao.UserDao;
+import ru.kata.spring.boot_security.demo.dto.CreateUserRequest;
+import ru.kata.spring.boot_security.demo.dto.UpdateUserRequest;
+import ru.kata.spring.boot_security.demo.exception.UserNotFoundException;
 import ru.kata.spring.boot_security.demo.model.Role;
 import ru.kata.spring.boot_security.demo.model.User;
 
@@ -58,41 +61,85 @@ public class UserServiceImpl implements UserService{
 
     @Override
     @Transactional
-    public User updateUser(User user){
-        User existingUser = userDao.findById(user.getId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found: id=" + user.getId()));
+    public User updateUser(Long id, UpdateUserRequest request){
+        User existing = userDao.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
 
-        if (user.getPassword() != null && !user.getPassword().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(user.getPassword()));
+        if (request.firstName() != null) existing.setFirstName(request.firstName());
+        if (request.lastName() != null) existing.setLastName(request.lastName());
+        if (request.age() != null) existing.setAge(request.age());
+        if (request.email() != null) existing.setEmail(request.email());
 
-        } else {
-            user.setPassword(existingUser.getPassword());
+        if (request.password() != null && !request.password().isBlank()) {
+            existing.setPassword(passwordEncoder.encode(request.password()));
         }
 
-        if (user.getRoles() == null || user.getRoles().isEmpty()) {
-            user.setRoles(existingUser.getRoles());
-        } else {
-            user.setRoles(roleService.getManagedRoles(user.getRoles()));
+        if (request.roleIds() != null && !request.roleIds().isEmpty()) {
+            existing.setRoles(roleService.getManagedRolesByIds(request.roleIds()));
         }
 
-        return userDao.merge(user);
+        return userDao.merge(existing);
     }
 
     @Override
     @Transactional
     public void deleteUser(Long id) {
-        userDao.deleteById(id);
+        User user = userDao.findById(id)
+                        .orElseThrow(() -> new UserNotFoundException(id));
+        userDao.deleteById(user.getId());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Optional <User> getUserById(Long id){
+    public User getUserById(Long id){
+        return userDao.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public User getUserByEmail(String email) {
+        return userDao.findByEmail(email)
+                .orElseThrow(() -> new UserNotFoundException(email));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<User> findUserById(Long id) {
         return userDao.findById(id);
     }
 
     @Override
-    public Optional<User> getUserByEmail(String email) {
+    @Transactional(readOnly = true)
+    public Optional<User> findUserByEmail(String email) {
         return userDao.findByEmail(email);
+    }
+
+    @Override
+    @Transactional
+    public User createUser(CreateUserRequest request) {
+        if (request.password() == null || request.password().isBlank()) {
+            throw new IllegalArgumentException("Password must not be empty");
+        }
+
+        User user = new User();
+        user.setFirstName(request.firstName());
+        user.setLastName(request.lastName());
+        user.setAge(request.age());
+        user.setEmail(request.email());
+        user.setPassword(passwordEncoder.encode(request.password()));
+
+
+        if (request.roleIds() != null && !request.roleIds().isEmpty()) {
+            user.setRoles(roleService.getManagedRolesByIds(request.roleIds()));
+        } else {
+            Role userRole = roleService.getRoleByName("ROLE_USER")
+                    .orElseThrow(() -> new IllegalStateException("Default role ROLE_USER not found"));
+            user.setRoles(new HashSet<>(Set.of(userRole)));
+        }
+
+        userDao.persist(user);
+        return user;
     }
 
 }
